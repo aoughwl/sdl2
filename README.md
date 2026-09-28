@@ -52,14 +52,35 @@ sdlQuit()
 - **Geometry/colour**: `SDL_Rect`/`rect()`, `SDL_Color`/`color()`, matching
   SDL's C layout via `{.bycopy.}` imports.
 
-## Not covered yet (v2)
+## Covered (v2, `sdl2/ext` and the glyph API in `sdl2/ttf`)
 
-Audio (`SDL_mixer`), gamepad/joystick input, advanced blend modes,
-multi-touch, render targets (`SDL_SetRenderTarget`), the full event union
-(only the fields above are exposed — e.g. no drag-and-drop, no
-`SDL_TEXTINPUT` string capture yet), and `SDL_image` (only raw
-`SDL_CreateTexture`/`SDL_UpdateTexture` for pixel blits — no PNG/JPG
-decoding).
+What a desktop application host needs beyond a drawing surface. Each item exists twice: as the raw
+C name with SDL's exact signature (`SDL_MaximizeWindow`) and as a small proc (`win.maximize()`).
+
+- **Window**: position, maximize / minimize / restore / raise / show / hide, borderless, resizable,
+  fullscreen (exclusive or desktop), always-on-top, opacity, flags, display index, display and
+  usable bounds, hit test (drag regions for frameless windows).
+- **Events**: `pushEvent`, `waitEventTimeout` (the idle sleep), `addEventWatch` (runs during Windows'
+  modal resize loop too), `SDL_TEXTINPUT` / `SDL_TEXTEDITING` with `textInput` / `editingText`,
+  fractional wheel (`preciseX/Y`), window-event constants.
+- **Input**: text input start/stop and IME rectangle, clipboard, keyboard state, mouse and global
+  mouse state, warp, system cursors.
+- **Render**: `renderGeometry` (vertices with colour + texture coordinates, optional indices - batches
+  a whole UI into one call), `fillRectF`, `blitF`, clip rectangle, blend / colour / alpha / scale
+  modes, renderer info and output size, `readPixels` / `pixelAt`, `saveBMP`.
+- **Misc**: `sleepMs`, `ticksUs`, `setHint`, `prefPath`, `loadObject` / `loadFunction`.
+- **Glyphs** (`sdl2/ttf`): `glyphProvided`, `glyphMetrics`, `kerning`, `height` / `ascent` / `descent`,
+  hinting and kerning switches, `renderGlyphBlended` - enough to lay a string out and cache
+  glyph bitmaps yourself. Open a face at size = units-per-em and `kerning` is font units.
+
+`tests/ext_test.nim` exercises all of it headless (SDL's dummy video driver + the software renderer).
+Needs SDL2 >= 2.0.18.
+
+## Not covered yet
+
+Audio (`SDL_mixer`), gamepad/joystick input, multi-touch, render targets
+(`SDL_SetRenderTarget`), drag-and-drop events, and `SDL_image` (image
+decoding is left to the application; Sprite vendors stb_image and libwebp).
 
 ## Building against it
 

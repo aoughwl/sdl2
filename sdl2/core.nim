@@ -78,6 +78,19 @@ proc color*(r, g, b: uint8; a: uint8 = 255): SDL_Color =
   ## Convenience constructor: an opaque-by-default `SDL_Color`.
   SDL_Color(r: r, g: g, b: b, a: a)
 
+# --- surface ---------------------------------------------------------------
+
+type
+  SDL_Surface* {.importc: "SDL_Surface", header: "<SDL2/SDL.h>", bycopy.} = object
+    ## The head of SDL's surface, enough to read pixels back: `pixels` is `pitch`
+    ## bytes per row, `h` rows.
+    flags*: Uint32
+    format*: pointer
+    w*, h*: cint
+    pitch*: cint
+    pixels*: pointer
+  Surface* = ptr SDL_Surface
+
 # --- window ----------------------------------------------------------------
 
 type
@@ -251,8 +264,19 @@ const
   SDL_MOUSEBUTTONDOWN* = 0x401'u32
   SDL_MOUSEBUTTONUP* = 0x402'u32
   SDL_MOUSEWHEEL* = 0x403'u32
+  SDL_TEXTEDITING* = 0x302'u32
+  SDL_TEXTINPUT* = 0x303'u32
+  SDL_RENDER_TARGETS_RESET* = 0x2000'u32
+  SDL_RENDER_DEVICE_RESET* = 0x2001'u32
 
+  SDL_WINDOWEVENT_SHOWN* = 1'u8
+  SDL_WINDOWEVENT_EXPOSED* = 3'u8
   SDL_WINDOWEVENT_RESIZED* = 5'u8
+  SDL_WINDOWEVENT_SIZE_CHANGED* = 6'u8
+  SDL_WINDOWEVENT_MAXIMIZED* = 8'u8
+  SDL_WINDOWEVENT_RESTORED* = 9'u8
+  SDL_WINDOWEVENT_FOCUS_GAINED* = 12'u8
+  SDL_WINDOWEVENT_FOCUS_LOST* = 13'u8
   SDL_WINDOWEVENT_CLOSE* = 14'u8
 
 type
@@ -306,6 +330,21 @@ type
     which*: Uint32
     x*, y*: Sint32
     direction*: Uint32
+    preciseX*, preciseY*: cfloat   ## SDL >= 2.0.18: fractional notches (smooth wheels, trackpads)
+    mouseX*, mouseY*: Sint32
+
+  SDL_TextInputEvent* {.importc: "SDL_TextInputEvent", header: "<SDL2/SDL.h>", bycopy.} = object
+    kind* {.importc: "type".}: Uint32
+    timestamp*: Uint32
+    windowID*: Uint32
+    text*: array[32, char]         ## NUL-terminated UTF-8 (`textInput(ev)` makes a string)
+
+  SDL_TextEditingEvent* {.importc: "SDL_TextEditingEvent", header: "<SDL2/SDL.h>", bycopy.} = object
+    kind* {.importc: "type".}: Uint32
+    timestamp*: Uint32
+    windowID*: Uint32
+    text*: array[32, char]         ## the IME composition so far
+    start*, length*: Sint32
 
   SDL_Event* {.importc: "SDL_Event", header: "<SDL2/SDL.h>", bycopy.} = object
     ## The real SDL_Event is a C union; each field below aliases the same
@@ -317,6 +356,8 @@ type
     motion*: SDL_MouseMotionEvent
     button*: SDL_MouseButtonEvent
     wheel*: SDL_MouseWheelEvent
+    text*: SDL_TextInputEvent
+    edit*: SDL_TextEditingEvent
 
 proc SDL_PollEvent(event: ptr SDL_Event): cint {.importc: "SDL_PollEvent", header: "<SDL2/SDL.h>", nodecl.}
 

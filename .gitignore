@@ -11,3 +11,7 @@ nifcache/
 # editor / os
 *.swp
 .DS_Store
+
+# test byproducts
+nimcache-*/
+*.bmp
